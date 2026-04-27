@@ -1,370 +1,406 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Status Toggle</title>
-    <style>
-      @import url("https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap");
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Status Toggle</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
 
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-      :root {
-        --on-glow: #22c55e;
-        --off-glow: #ef4444;
-        --bg: #0c0c0e;
-        --surface: #131317;
-        --border: rgba(255, 255, 255, 0.07);
-        --text: #f0ede8;
-        --muted: rgba(240, 237, 232, 0.45);
-      }
+    :root {
+      --on-glow: #22c55e;
+      --off-glow: #ef4444;
+      --bg: #0c0c0e;
+      --surface: #131317;
+      --border: rgba(255,255,255,0.07);
+      --text: #f0ede8;
+      --muted: rgba(240,237,232,0.45);
+    }
 
-      body {
-        background: var(--bg);
-        color: var(--text);
-        font-family: "DM Sans", sans-serif;
-        min-height: 100vh;
-        min-height: 100dvh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-      }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
 
-      .grain {
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        opacity: 0.035;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-        background-size: 200px 200px;
-      }
+    .grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+    }
 
-      .rings {
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
+    .rings {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-      .ring {
-        position: absolute;
-        border-radius: 50%;
-        border: 1px solid;
-        opacity: 0;
-        animation: pulse-ring 4s ease-out infinite;
-      }
+    .ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid;
+      opacity: 0;
+      animation: pulse-ring 4s ease-out infinite;
+    }
 
-      .ring:nth-child(1) {
-        width: 200px;
-        height: 200px;
-        animation-delay: 0s;
-      }
-      .ring:nth-child(2) {
-        width: 320px;
-        height: 320px;
-        animation-delay: 0.8s;
-      }
-      .ring:nth-child(3) {
-        width: 440px;
-        height: 440px;
-        animation-delay: 1.6s;
-      }
+    .ring:nth-child(1) { width: 200px; height: 200px; animation-delay: 0s; }
+    .ring:nth-child(2) { width: 320px; height: 320px; animation-delay: 0.8s; }
+    .ring:nth-child(3) { width: 440px; height: 440px; animation-delay: 1.6s; }
 
-      @keyframes pulse-ring {
-        0% {
-          opacity: 0;
-          transform: scale(0.85);
-        }
-        20% {
-          opacity: 0.15;
-        }
-        100% {
-          opacity: 0;
-          transform: scale(1.05);
-        }
-      }
+    @keyframes pulse-ring {
+      0% { opacity: 0; transform: scale(0.85); }
+      20% { opacity: 0.15; }
+      100% { opacity: 0; transform: scale(1.05); }
+    }
 
-      .card {
-        position: relative;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 28px;
-        padding: clamp(32px, 8vw, 52px) clamp(24px, 8vw, 60px);
-        text-align: center;
-        width: 100%;
-        max-width: 440px;
-        z-index: 10;
-      }
+    .card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: clamp(32px, 8vw, 52px) clamp(24px, 8vw, 60px);
+      text-align: center;
+      width: 100%;
+      max-width: 440px;
+      z-index: 10;
+    }
 
-      .card::before {
-        content: "";
-        position: absolute;
-        inset: -1px;
-        border-radius: 28px;
-        background: linear-gradient(
-          135deg,
-          rgba(255, 255, 255, 0.08) 0%,
-          transparent 60%
-        );
-        pointer-events: none;
-      }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
 
-      .label-top {
-        font-family: "Syne", sans-serif;
-        font-size: clamp(10px, 2.5vw, 11px);
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--muted);
-        margin-bottom: clamp(28px, 6vw, 40px);
-      }
+    /* LOGIN */
+    .login-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(22px, 6vw, 28px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+    }
 
-      .status-indicator {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        display: inline-block;
-        margin-right: 8px;
-        vertical-align: middle;
-        position: relative;
-        top: -1px;
-        transition:
-          background 0.4s,
-          box-shadow 0.4s;
-      }
+    .login-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 32px;
+      font-weight: 300;
+    }
 
-      .toggle-wrap {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: clamp(24px, 6vw, 36px);
-      }
+    .input-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
 
-      .status-text {
-        font-family: "Syne", sans-serif;
-        font-size: clamp(48px, 16vw, 72px);
-        font-weight: 800;
-        letter-spacing: -2px;
-        line-height: 1;
-        transition: color 0.4s;
-      }
+    .input-field {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 14px 18px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
 
-      .toggle-btn {
-        position: relative;
-        width: clamp(80px, 22vw, 96px);
-        height: clamp(44px, 12vw, 52px);
-        border-radius: 100px;
-        border: none;
-        cursor: pointer;
-        background: transparent;
-        padding: 0;
-        outline: none;
-        -webkit-tap-highlight-color: transparent;
-      }
+    .input-field::placeholder { color: var(--muted); }
+    .input-field:focus { border-color: rgba(255,255,255,0.25); }
 
-      .toggle-track {
-        width: 100%;
-        height: 100%;
-        border-radius: 100px;
-        border: 1.5px solid rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.04);
-        transition:
-          background 0.4s,
-          border-color 0.4s;
-        position: relative;
-        overflow: hidden;
-      }
+    .login-btn {
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      padding: 14px;
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.3s;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-      .toggle-thumb {
-        position: absolute;
-        top: 4px;
-        left: 4px;
-        width: calc(clamp(44px, 12vw, 52px) - 10px);
-        height: calc(clamp(44px, 12vw, 52px) - 10px);
-        border-radius: 50%;
-        background: #fff;
-        transition:
-          transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-          background 0.4s;
-        will-change: transform;
-      }
+    .login-btn:hover { background: rgba(255,255,255,0.13); }
+    .login-btn:active { background: rgba(255,255,255,0.06); }
 
-      .toggle-btn.on .toggle-track {
-        background: rgba(34, 197, 94, 0.18);
-        border-color: rgba(34, 197, 94, 0.4);
-      }
+    .login-error {
+      font-size: 13px;
+      color: var(--off-glow);
+      margin-top: 12px;
+      min-height: 18px;
+      transition: opacity 0.3s;
+    }
 
-      .toggle-btn.on .toggle-thumb {
-        transform: translateX(
-          calc(clamp(80px, 22vw, 96px) - clamp(44px, 12vw, 52px) + 2px)
-        );
-        background: var(--on-glow);
-      }
+    /* TOGGLE PAGE */
+    .label-top {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(10px, 2.5vw, 11px);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: clamp(28px, 6vw, 40px);
+    }
 
-      .toggle-btn.off .toggle-track {
-        background: rgba(239, 68, 68, 0.12);
-        border-color: rgba(239, 68, 68, 0.3);
-      }
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+      vertical-align: middle;
+      position: relative;
+      top: -1px;
+      transition: background 0.4s, box-shadow 0.4s;
+    }
 
-      .toggle-btn.off .toggle-thumb {
-        background: var(--off-glow);
-      }
+    .toggle-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(24px, 6vw, 36px);
+    }
 
-      .status-text.on {
-        color: var(--on-glow);
-      }
-      .status-text.off {
-        color: var(--off-glow);
-      }
+    .status-text {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(48px, 16vw, 72px);
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1;
+      transition: color 0.4s;
+    }
 
-      .status-indicator.on {
-        background: var(--on-glow);
-        box-shadow: 0 0 8px var(--on-glow);
-      }
-      .status-indicator.off {
-        background: var(--off-glow);
-        box-shadow: 0 0 8px var(--off-glow);
-      }
+    .toggle-btn {
+      position: relative;
+      width: clamp(80px, 22vw, 96px);
+      height: clamp(44px, 12vw, 52px);
+      border-radius: 100px;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      padding: 0;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-      .ring.on {
-        border-color: var(--on-glow);
-      }
-      .ring.off {
-        border-color: var(--off-glow);
-      }
+    .toggle-track {
+      width: 100%;
+      height: 100%;
+      border-radius: 100px;
+      border: 1.5px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      transition: background 0.4s, border-color 0.4s;
+      position: relative;
+      overflow: hidden;
+    }
 
-      .feedback {
-        font-size: clamp(12px, 3vw, 13px);
-        color: var(--muted);
-        min-height: 20px;
-        margin-top: 4px;
-        transition: color 0.3s;
-        font-weight: 300;
-      }
+    .toggle-thumb {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: calc(clamp(44px, 12vw, 52px) - 10px);
+      height: calc(clamp(44px, 12vw, 52px) - 10px);
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.4s;
+    }
 
-      .feedback.sending {
-        color: var(--muted);
-      }
-      .feedback.sent-on {
-        color: var(--on-glow);
-      }
-      .feedback.sent-off {
-        color: var(--off-glow);
-      }
-      .feedback.error {
-        color: #f97316;
-      }
+    .toggle-btn.on .toggle-track { background: rgba(34,197,94,0.18); border-color: rgba(34,197,94,0.4); }
+    .toggle-btn.on .toggle-thumb { transform: translateX(calc(clamp(80px, 22vw, 96px) - clamp(44px, 12vw, 52px) + 2px)); background: var(--on-glow); }
+    .toggle-btn.off .toggle-track { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.3); }
+    .toggle-btn.off .toggle-thumb { background: var(--off-glow); }
 
-      .divider {
-        width: 40px;
-        height: 1px;
-        background: var(--border);
-        margin: clamp(20px, 5vw, 28px) auto clamp(16px, 4vw, 24px);
-      }
+    .status-text.on { color: var(--on-glow); }
+    .status-text.off { color: var(--off-glow); }
+    .status-indicator.on { background: var(--on-glow); box-shadow: 0 0 8px var(--on-glow); }
+    .status-indicator.off { background: var(--off-glow); box-shadow: 0 0 8px var(--off-glow); }
+    .ring.on { border-color: var(--on-glow); }
+    .ring.off { border-color: var(--off-glow); }
 
-      .footer-text {
-        font-size: clamp(11px, 2.8vw, 12px);
-        color: var(--muted);
-        font-weight: 300;
-        letter-spacing: 0.02em;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="grain"></div>
-    <div class="rings">
-      <div class="ring off"></div>
-      <div class="ring off"></div>
-      <div class="ring off"></div>
+    .feedback {
+      font-size: clamp(12px, 3vw, 13px);
+      color: var(--muted);
+      min-height: 20px;
+      margin-top: 4px;
+      transition: color 0.3s;
+      font-weight: 300;
+    }
+
+    .feedback.sending { color: var(--muted); }
+    .feedback.sent-on { color: var(--on-glow); }
+    .feedback.sent-off { color: var(--off-glow); }
+    .feedback.error { color: #f97316; }
+
+    .divider {
+      width: 40px;
+      height: 1px;
+      background: var(--border);
+      margin: clamp(20px, 5vw, 28px) auto clamp(16px, 4vw, 24px);
+    }
+
+    .footer-text {
+      font-size: clamp(11px, 2.8vw, 12px);
+      color: var(--muted);
+      font-weight: 300;
+      letter-spacing: 0.02em;
+    }
+
+    .hidden { display: none; }
+
+    .shake {
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+  <div class="rings">
+    <div class="ring off"></div>
+    <div class="ring off"></div>
+    <div class="ring off"></div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="card" id="loginCard">
+    <div class="login-title">Вход</div>
+    <div class="login-sub">введите логин и пароль</div>
+    <div class="input-wrap">
+      <input class="input-field" type="text" id="loginInput" placeholder="Логин" autocomplete="off" />
+      <input class="input-field" type="password" id="passInput" placeholder="Пароль" autocomplete="off" />
     </div>
+    <button class="login-btn" onclick="handleLogin()">ВОЙТИ</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
 
-    <div class="card">
-      <div class="label-top">
-        <span class="status-indicator off" id="dot"></span>
-        статус устройства
-      </div>
-
-      <div class="toggle-wrap">
-        <div class="status-text off" id="statusText">OFF</div>
-
-        <button class="toggle-btn off" id="toggleBtn" onclick="handleToggle()">
-          <div class="toggle-track">
-            <div class="toggle-thumb"></div>
-          </div>
-        </button>
-
-        <div class="feedback" id="feedback">нажмите для изменения статуса</div>
-      </div>
-
-      <div class="divider"></div>
-      <div class="footer-text">уведомление придёт в Telegram</div>
+  <!-- TOGGLE -->
+  <div class="card hidden" id="toggleCard">
+    <div class="label-top">
+      <span class="status-indicator off" id="dot"></span>
+      статус устройства
     </div>
+    <div class="toggle-wrap">
+      <div class="status-text off" id="statusText">OFF</div>
+      <button class="toggle-btn off" id="toggleBtn" onclick="handleToggle()">
+        <div class="toggle-track">
+          <div class="toggle-thumb"></div>
+        </div>
+      </button>
+      <div class="feedback" id="feedback">нажмите для изменения статуса</div>
+    </div>
+    <div class="divider"></div>
+    <div class="footer-text">уведомление придёт в Telegram</div>
+  </div>
 
-    <script>
-      const BOT_TOKEN = "ТВОЙ_BOT_TOKEN";
-      const CHAT_ID = "ТВОЙ_CHAT_ID";
+  <script>
+    const BOT_TOKEN = '8389849507:AAEwggAIN17VKTCLt0eN4iWO6M2qEQbh32A';
+    const CHAT_ID = '163426308';
 
-      let isOn = false;
-      let isSending = false;
+    const VALID_LOGIN = 'habib';
+    const VALID_PASS = '450212';
 
-      async function sendTelegram(status) {
-        const emoji = status === "ON" ? "🟢" : "🔴";
-        const text = `${emoji} Статус изменён\n\nСтатус: *${status}*\nВремя: ${new Date().toLocaleString("ru-RU", { timeZone: "Asia/Dushanbe" })}`;
-        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            chat_id: CHAT_ID,
-            text,
-            parse_mode: "Markdown",
-          }),
-        });
-        const data = await res.json();
-        if (!data.ok) throw new Error(data.description);
+    // Enter key support
+    document.getElementById('passInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
+    document.getElementById('loginInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    function handleLogin() {
+      const login = document.getElementById('loginInput').value.trim();
+      const pass = document.getElementById('passInput').value.trim();
+      const errorEl = document.getElementById('loginError');
+      const card = document.getElementById('loginCard');
+
+      if (login === VALID_LOGIN && pass === VALID_PASS) {
+        document.getElementById('loginCard').classList.add('hidden');
+        document.getElementById('toggleCard').classList.remove('hidden');
+      } else {
+        errorEl.textContent = 'неверный логин или пароль';
+        card.classList.add('shake');
+        card.addEventListener('animationend', () => card.classList.remove('shake'), { once: true });
+      }
+    }
+
+    let isOn = false;
+    let isSending = false;
+
+    async function sendTelegram(status) {
+      const emoji = status === 'ON' ? '🟢' : '🔴';
+      const text = `${emoji} Статус изменён\n\nСтатус: *${status}*\nВремя: ${new Date().toLocaleString('ru-RU', {timeZone: 'Asia/Dushanbe'})}`;
+      const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: CHAT_ID, text, parse_mode: 'Markdown' })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.description);
+    }
+
+    async function handleToggle() {
+      if (isSending) return;
+      isSending = true;
+
+      isOn = !isOn;
+      const statusStr = isOn ? 'ON' : 'OFF';
+
+      const btn = document.getElementById('toggleBtn');
+      const text = document.getElementById('statusText');
+      const dot = document.getElementById('dot');
+      const feedback = document.getElementById('feedback');
+      const rings = document.querySelectorAll('.ring');
+
+      btn.className = `toggle-btn ${isOn ? 'on' : 'off'}`;
+      text.className = `status-text ${isOn ? 'on' : 'off'}`;
+      text.textContent = statusStr;
+      dot.className = `status-indicator ${isOn ? 'on' : 'off'}`;
+      rings.forEach(r => r.className = `ring ${isOn ? 'on' : 'off'}`);
+
+      feedback.className = 'feedback sending';
+      feedback.textContent = 'отправка уведомления...';
+
+      try {
+        await sendTelegram(statusStr);
+        feedback.className = `feedback sent-${statusStr.toLowerCase()}`;
+        feedback.textContent = `✓ уведомление отправлено — ${statusStr}`;
+      } catch (e) {
+        feedback.className = 'feedback error';
+        feedback.textContent = '⚠ ошибка — проверьте токен бота';
       }
 
-      async function handleToggle() {
-        if (isSending) return;
-        isSending = true;
-
-        isOn = !isOn;
-        const statusStr = isOn ? "ON" : "OFF";
-
-        const btn = document.getElementById("toggleBtn");
-        const text = document.getElementById("statusText");
-        const dot = document.getElementById("dot");
-        const feedback = document.getElementById("feedback");
-        const rings = document.querySelectorAll(".ring");
-
-        btn.className = `toggle-btn ${isOn ? "on" : "off"}`;
-        text.className = `status-text ${isOn ? "on" : "off"}`;
-        text.textContent = statusStr;
-        dot.className = `status-indicator ${isOn ? "on" : "off"}`;
-        rings.forEach((r) => (r.className = `ring ${isOn ? "on" : "off"}`));
-
-        feedback.className = "feedback sending";
-        feedback.textContent = "отправка уведомления...";
-
-        try {
-          await sendTelegram(statusStr);
-          feedback.className = `feedback sent-${statusStr.toLowerCase()}`;
-          feedback.textContent = `✓ уведомление отправлено — ${statusStr}`;
-        } catch (e) {
-          feedback.className = "feedback error";
-          feedback.textContent = "⚠ ошибка — проверьте токен бота";
-        }
-
-        isSending = false;
-      }
-    </script>
-  </body>
+      isSending = false;
+    }
+  </script>
+</body>
 </html>
