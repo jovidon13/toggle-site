@@ -14,6 +14,9 @@ export function stateStore() {
 export function sessionsStore() {
   return getStore("sessions");
 }
+export function subscribersStore() {
+  return getStore("subscribers");
+}
 
 export function json(data, init = {}) {
   return new Response(JSON.stringify(data), {

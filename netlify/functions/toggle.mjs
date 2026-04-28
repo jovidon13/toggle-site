@@ -1,9 +1,22 @@
-import { requireSession, stateStore, json } from "./_shared.mjs";
+import {
+  requireSession,
+  stateStore,
+  subscribersStore,
+  json,
+} from "./_shared.mjs";
 
-async function sendTelegram(status, login) {
+async function broadcast(status, login) {
   const token = process.env.BOT_TOKEN;
-  const chatId = process.env.CHAT_ID;
-  if (!token || !chatId) return { skipped: true };
+  if (!token) return { sent: 0, failed: 0, total: 0 };
+
+  const store = subscribersStore();
+  const { blobs } = await store.list();
+
+  const chatIds = new Set(blobs.map((b) => b.key));
+  const legacy = process.env.CHAT_ID;
+  if (legacy) chatIds.add(String(legacy));
+
+  if (chatIds.size === 0) return { sent: 0, failed: 0, total: 0 };
 
   const emoji = status === "ON" ? "🟢" : "🔴";
   const time = new Date().toLocaleString("ru-RU", {
@@ -11,18 +24,43 @@ async function sendTelegram(status, login) {
   });
   const text = `${emoji} Статус изменён\n\nСтатус: *${status}*\nПользователь: ${login}\nВремя: ${time}`;
 
-  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text,
-      parse_mode: "Markdown",
+  let sent = 0;
+  let failed = 0;
+
+  await Promise.all(
+    [...chatIds].map(async (chatId) => {
+      try {
+        const res = await fetch(
+          `https://api.telegram.org/bot${token}/sendMessage`,
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text,
+              parse_mode: "Markdown",
+            }),
+          },
+        );
+        const data = await res.json();
+        if (data.ok) {
+          sent++;
+        } else {
+          failed++;
+          if (
+            data.error_code === 403 ||
+            data.error_code === 400
+          ) {
+            await store.delete(chatId).catch(() => {});
+          }
+        }
+      } catch {
+        failed++;
+      }
     }),
-  });
-  const data = await res.json();
-  if (!data.ok) throw new Error(data.description || "telegram error");
-  return { skipped: false };
+  );
+
+  return { sent, failed, total: chatIds.size };
 }
 
 export default async (req) => {
@@ -46,16 +84,20 @@ export default async (req) => {
     lastChangedAt: new Date().toISOString(),
   };
 
-  let telegramOk = true;
-  let telegramError = null;
+  let telegram = { sent: 0, failed: 0, total: 0 };
   try {
-    await sendTelegram(status, auth.session.login);
-  } catch (err) {
-    telegramOk = false;
-    telegramError = err.message;
+    telegram = await broadcast(status, auth.session.login);
+  } catch {
+    /* swallow — state still saves */
   }
 
   await store.setJSON("current", next);
 
-  return json({ ...next, telegramOk, telegramError });
+  const telegramOk = telegram.total === 0 || telegram.sent > 0;
+
+  return json({
+    ...next,
+    telegramOk,
+    telegram,
+  });
 };
