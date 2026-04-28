@@ -93,6 +93,37 @@
         }
       }
 
+      .topbar {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        z-index: 20;
+      }
+
+      .topbar a,
+      .topbar button {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text);
+        font-family: "Syne", sans-serif;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        text-decoration: none;
+        padding: 8px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.2s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .topbar a:hover,
+      .topbar button:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
       .card {
         position: relative;
         background: var(--surface);
@@ -118,7 +149,6 @@
         pointer-events: none;
       }
 
-      /* LOGIN */
       .login-title {
         font-family: "Syne", sans-serif;
         font-size: clamp(22px, 6vw, 28px);
@@ -183,6 +213,10 @@
       .login-btn:active {
         background: rgba(255, 255, 255, 0.06);
       }
+      .login-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
 
       .login-error {
         font-size: 13px;
@@ -192,7 +226,6 @@
         transition: opacity 0.3s;
       }
 
-      /* TOGGLE PAGE */
       .label-top {
         font-family: "Syne", sans-serif;
         font-size: clamp(10px, 2.5vw, 11px);
@@ -243,6 +276,10 @@
         padding: 0;
         outline: none;
         -webkit-tap-highlight-color: transparent;
+      }
+      .toggle-btn:disabled {
+        cursor: wait;
+        opacity: 0.6;
       }
 
       .toggle-track {
@@ -346,8 +383,15 @@
         letter-spacing: 0.02em;
       }
 
+      .meta {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 6px;
+        font-weight: 300;
+      }
+
       .hidden {
-        display: none;
+        display: none !important;
       }
 
       .shake {
@@ -382,8 +426,13 @@
       <div class="ring off"></div>
     </div>
 
+    <div class="topbar hidden" id="topbar">
+      <a href="/admin.html" id="adminLink" class="hidden">Админка</a>
+      <button type="button" id="logoutBtn">Выйти</button>
+    </div>
+
     <!-- LOGIN -->
-    <div class="card" id="loginCard">
+    <div class="card hidden" id="loginCard">
       <div class="login-title">Вход</div>
       <div class="login-sub">введите логин и пароль</div>
       <div class="input-wrap">
@@ -392,17 +441,17 @@
           type="text"
           id="loginInput"
           placeholder="Логин"
-          autocomplete="off"
+          autocomplete="username"
         />
         <input
           class="input-field"
           type="password"
           id="passInput"
           placeholder="Пароль"
-          autocomplete="off"
+          autocomplete="current-password"
         />
       </div>
-      <button class="login-btn" onclick="handleLogin()">ВОЙТИ</button>
+      <button class="login-btn" id="loginBtn" type="button">ВОЙТИ</button>
       <div class="login-error" id="loginError"></div>
     </div>
 
@@ -414,105 +463,218 @@
       </div>
       <div class="toggle-wrap">
         <div class="status-text off" id="statusText">OFF</div>
-        <button class="toggle-btn off" id="toggleBtn" onclick="handleToggle()">
+        <button class="toggle-btn off" id="toggleBtn" type="button">
           <div class="toggle-track">
             <div class="toggle-thumb"></div>
           </div>
         </button>
         <div class="feedback" id="feedback">нажмите для изменения статуса</div>
+        <div class="meta" id="meta"></div>
       </div>
       <div class="divider"></div>
       <div class="footer-text">уведомление придёт в Telegram</div>
     </div>
 
     <script>
-      const BOT_TOKEN = "8389849507:AAEwggAIN17VKTCLt0eN4iWO6M2qEQbh32A";
-      const CHAT_ID = "799583059";
+      const $ = (id) => document.getElementById(id);
 
-      const VALID_LOGIN = "habib";
-      const VALID_PASS = "450212";
-
-      // Enter key support
-      document.getElementById("passInput").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") handleLogin();
-      });
-      document.getElementById("loginInput").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") handleLogin();
-      });
-
-      function handleLogin() {
-        const login = document.getElementById("loginInput").value.trim();
-        const pass = document.getElementById("passInput").value.trim();
-        const errorEl = document.getElementById("loginError");
-        const card = document.getElementById("loginCard");
-
-        if (login === VALID_LOGIN && pass === VALID_PASS) {
-          document.getElementById("loginCard").classList.add("hidden");
-          document.getElementById("toggleCard").classList.remove("hidden");
-        } else {
-          errorEl.textContent = "неверный логин или пароль";
-          card.classList.add("shake");
-          card.addEventListener(
-            "animationend",
-            () => card.classList.remove("shake"),
-            { once: true },
-          );
-        }
-      }
+      const loginCard = $("loginCard");
+      const toggleCard = $("toggleCard");
+      const topbar = $("topbar");
+      const adminLink = $("adminLink");
+      const loginBtn = $("loginBtn");
+      const loginInput = $("loginInput");
+      const passInput = $("passInput");
+      const loginError = $("loginError");
+      const toggleBtn = $("toggleBtn");
+      const statusText = $("statusText");
+      const dot = $("dot");
+      const feedback = $("feedback");
+      const meta = $("meta");
+      const rings = document.querySelectorAll(".ring");
 
       let isOn = false;
       let isSending = false;
 
-      async function sendTelegram(status) {
-        const emoji = status === "ON" ? "🟢" : "🔴";
-        const text = `${emoji} Статус изменён\n\nСтатус: *${status}*\nВремя: ${new Date().toLocaleString("ru-RU", { timeZone: "Asia/Dushanbe" })}`;
-        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            chat_id: CHAT_ID,
-            text,
-            parse_mode: "Markdown",
-          }),
-        });
-        const data = await res.json();
-        if (!data.ok) throw new Error(data.description);
+      function applyState(state) {
+        isOn = !!state.isOn;
+        const cls = isOn ? "on" : "off";
+        toggleBtn.className = `toggle-btn ${cls}`;
+        statusText.className = `status-text ${cls}`;
+        statusText.textContent = isOn ? "ON" : "OFF";
+        dot.className = `status-indicator ${cls}`;
+        rings.forEach((r) => (r.className = `ring ${cls}`));
+
+        if (state.lastChangedBy && state.lastChangedAt) {
+          const time = new Date(state.lastChangedAt).toLocaleString("ru-RU", {
+            timeZone: "Asia/Dushanbe",
+          });
+          meta.textContent = `последнее изменение: ${state.lastChangedBy} · ${time}`;
+        } else {
+          meta.textContent = "";
+        }
+      }
+
+      function showLogin() {
+        loginCard.classList.remove("hidden");
+        toggleCard.classList.add("hidden");
+        topbar.classList.add("hidden");
+        loginInput.focus();
+      }
+
+      function showToggle(role) {
+        loginCard.classList.add("hidden");
+        toggleCard.classList.remove("hidden");
+        topbar.classList.remove("hidden");
+        adminLink.classList.toggle("hidden", role !== "admin");
+      }
+
+      async function fetchStatus() {
+        try {
+          const res = await fetch("/api/status", { credentials: "same-origin" });
+          if (!res.ok) return;
+          const state = await res.json();
+          applyState(state);
+        } catch {
+          /* offline */
+        }
+      }
+
+      async function init() {
+        try {
+          const res = await fetch("/api/me", { credentials: "same-origin" });
+          const data = await res.json();
+          if (data.authenticated) {
+            showToggle(data.role);
+            await fetchStatus();
+            feedback.className = "feedback";
+            feedback.textContent = "нажмите для изменения статуса";
+          } else {
+            showLogin();
+          }
+        } catch {
+          showLogin();
+          loginError.textContent = "нет связи с сервером";
+        }
+      }
+
+      async function handleLogin() {
+        const login = loginInput.value.trim();
+        const password = passInput.value;
+        loginError.textContent = "";
+
+        if (!login || !password) {
+          loginError.textContent = "введите логин и пароль";
+          return;
+        }
+
+        loginBtn.disabled = true;
+        try {
+          const res = await fetch("/api/login", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ login, password }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            loginError.textContent = data.error || "ошибка входа";
+            loginCard.classList.add("shake");
+            loginCard.addEventListener(
+              "animationend",
+              () => loginCard.classList.remove("shake"),
+              { once: true },
+            );
+            return;
+          }
+          passInput.value = "";
+          showToggle(data.role);
+          await fetchStatus();
+          feedback.className = "feedback";
+          feedback.textContent = "нажмите для изменения статуса";
+        } catch {
+          loginError.textContent = "ошибка сети";
+        } finally {
+          loginBtn.disabled = false;
+        }
       }
 
       async function handleToggle() {
         if (isSending) return;
         isSending = true;
-
-        isOn = !isOn;
-        const statusStr = isOn ? "ON" : "OFF";
-
-        const btn = document.getElementById("toggleBtn");
-        const text = document.getElementById("statusText");
-        const dot = document.getElementById("dot");
-        const feedback = document.getElementById("feedback");
-        const rings = document.querySelectorAll(".ring");
-
-        btn.className = `toggle-btn ${isOn ? "on" : "off"}`;
-        text.className = `status-text ${isOn ? "on" : "off"}`;
-        text.textContent = statusStr;
-        dot.className = `status-indicator ${isOn ? "on" : "off"}`;
-        rings.forEach((r) => (r.className = `ring ${isOn ? "on" : "off"}`));
-
+        toggleBtn.disabled = true;
         feedback.className = "feedback sending";
         feedback.textContent = "отправка уведомления...";
 
         try {
-          await sendTelegram(statusStr);
-          feedback.className = `feedback sent-${statusStr.toLowerCase()}`;
-          feedback.textContent = `✓ уведомление отправлено — ${statusStr}`;
-        } catch (e) {
+          const res = await fetch("/api/toggle", {
+            method: "POST",
+            credentials: "same-origin",
+          });
+          if (res.status === 401) {
+            showLogin();
+            return;
+          }
+          const data = await res.json();
+          if (!res.ok) {
+            feedback.className = "feedback error";
+            feedback.textContent = data.error || "ошибка";
+            return;
+          }
+          applyState(data);
+          const statusStr = data.isOn ? "ON" : "OFF";
+          if (data.telegramOk) {
+            feedback.className = `feedback sent-${statusStr.toLowerCase()}`;
+            feedback.textContent = `✓ уведомление отправлено — ${statusStr}`;
+          } else {
+            feedback.className = "feedback error";
+            feedback.textContent = `статус сохранён, но Telegram недоступен`;
+          }
+        } catch {
           feedback.className = "feedback error";
-          feedback.textContent = "⚠ ошибка — проверьте токен бота";
+          feedback.textContent = "⚠ ошибка сети";
+        } finally {
+          isSending = false;
+          toggleBtn.disabled = false;
         }
-
-        isSending = false;
       }
+
+      async function handleLogout() {
+        try {
+          await fetch("/api/logout", {
+            method: "POST",
+            credentials: "same-origin",
+          });
+        } catch {
+          /* ignore */
+        }
+        loginInput.value = "";
+        passInput.value = "";
+        loginError.textContent = "";
+        showLogin();
+      }
+
+      loginBtn.addEventListener("click", handleLogin);
+      toggleBtn.addEventListener("click", handleToggle);
+      $("logoutBtn").addEventListener("click", handleLogout);
+
+      passInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") handleLogin();
+      });
+      loginInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") handleLogin();
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (
+          document.visibilityState === "visible" &&
+          !toggleCard.classList.contains("hidden")
+        ) {
+          fetchStatus();
+        }
+      });
+
+      init();
     </script>
   </body>
 </html>

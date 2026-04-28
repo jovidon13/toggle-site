@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Админка</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap");
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --on-glow: #22c55e;
+        --off-glow: #ef4444;
+        --bg: #0c0c0e;
+        --surface: #131317;
+        --border: rgba(255, 255, 255, 0.07);
+        --text: #f0ede8;
+        --muted: rgba(240, 237, 232, 0.45);
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "DM Sans", sans-serif;
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: 80px 20px 40px;
+      }
+
+      .grain {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.035;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 200px 200px;
+      }
+
+      .topbar {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        z-index: 20;
+      }
+
+      .topbar a,
+      .topbar button {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text);
+        font-family: "Syne", sans-serif;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        text-decoration: none;
+        padding: 8px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.2s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .topbar a:hover,
+      .topbar button:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .container {
+        max-width: 760px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 10;
+      }
+
+      h1 {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(24px, 6vw, 32px);
+        font-weight: 800;
+        letter-spacing: -1px;
+        margin-bottom: 4px;
+      }
+      .subtitle {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 32px;
+        font-weight: 300;
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+
+      .panel-title {
+        font-family: "Syne", sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+        color: var(--muted);
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .field label {
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 12px 14px;
+        color: var(--text);
+        font-family: "DM Sans", sans-serif;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s;
+      }
+      .input:focus {
+        border-color: rgba(255, 255, 255, 0.25);
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 140px auto;
+        gap: 12px;
+        align-items: end;
+      }
+
+      @media (max-width: 600px) {
+        .row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .btn {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        padding: 12px 18px;
+        color: var(--text);
+        font-family: "Syne", sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        transition: background 0.2s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.13);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .btn-danger {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.3);
+      }
+      .btn-danger:hover {
+        background: rgba(239, 68, 68, 0.25);
+      }
+      .btn-small {
+        padding: 8px 12px;
+        font-size: 10px;
+      }
+
+      .form-msg {
+        font-size: 12px;
+        margin-top: 12px;
+        min-height: 16px;
+      }
+      .form-msg.error {
+        color: var(--off-glow);
+      }
+      .form-msg.success {
+        color: var(--on-glow);
+      }
+
+      .users-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .users-table th,
+      .users-table td {
+        padding: 12px 8px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+      }
+      .users-table th {
+        font-family: "Syne", sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .users-table tr:last-child td {
+        border-bottom: none;
+      }
+      .role-badge {
+        display: inline-block;
+        font-size: 10px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-family: "Syne", sans-serif;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .role-badge.admin {
+        background: rgba(34, 197, 94, 0.15);
+        color: var(--on-glow);
+      }
+      .role-badge.user {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--muted);
+      }
+      .actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .me-tag {
+        font-size: 10px;
+        color: var(--muted);
+        margin-left: 6px;
+      }
+
+      .empty {
+        text-align: center;
+        color: var(--muted);
+        padding: 24px 0;
+        font-size: 13px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .loading {
+        text-align: center;
+        color: var(--muted);
+        padding: 40px 0;
+        font-size: 14px;
+      }
+
+      .access-denied {
+        text-align: center;
+        padding: 60px 0;
+      }
+      .access-denied .login-title {
+        font-family: "Syne", sans-serif;
+        font-size: 28px;
+        font-weight: 800;
+        margin-bottom: 8px;
+      }
+      .access-denied p {
+        color: var(--muted);
+        margin-bottom: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grain"></div>
+
+    <div class="topbar hidden" id="topbar">
+      <a href="/">На главную</a>
+      <button type="button" id="logoutBtn">Выйти</button>
+    </div>
+
+    <div class="container">
+      <div id="loadingView" class="loading">загрузка...</div>
+
+      <div id="deniedView" class="hidden">
+        <div class="panel access-denied">
+          <div class="login-title">Доступ запрещён</div>
+          <p>Эта страница доступна только администратору.</p>
+          <a href="/" class="btn" style="display: inline-block; text-decoration: none;">На страницу входа</a>
+        </div>
+      </div>
+
+      <div id="adminView" class="hidden">
+        <h1>Управление пользователями</h1>
+        <div class="subtitle" id="welcomeSub">вы вошли как админ</div>
+
+        <div class="panel">
+          <div class="panel-title">создать пользователя</div>
+          <div class="row">
+            <div class="field">
+              <label for="newLogin">логин</label>
+              <input
+                class="input"
+                type="text"
+                id="newLogin"
+                autocomplete="off"
+                placeholder="login"
+              />
+            </div>
+            <div class="field">
+              <label for="newPass">пароль</label>
+              <input
+                class="input"
+                type="text"
+                id="newPass"
+                autocomplete="off"
+                placeholder="минимум 4 символа"
+              />
+            </div>
+            <div class="field">
+              <label for="newRole">роль</label>
+              <select class="input" id="newRole">
+                <option value="user">user</option>
+                <option value="admin">admin</option>
+              </select>
+            </div>
+            <button class="btn" type="button" id="createBtn">Создать</button>
+          </div>
+          <div class="form-msg" id="createMsg"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">список пользователей</div>
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>Логин</th>
+                <th>Роль</th>
+                <th>Создан</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="usersTbody"></tbody>
+          </table>
+          <div class="form-msg" id="listMsg"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      const loadingView = $("loadingView");
+      const deniedView = $("deniedView");
+      const adminView = $("adminView");
+      const topbar = $("topbar");
+      const welcomeSub = $("welcomeSub");
+      const tbody = $("usersTbody");
+      const createBtn = $("createBtn");
+      const newLogin = $("newLogin");
+      const newPass = $("newPass");
+      const newRole = $("newRole");
+      const createMsg = $("createMsg");
+      const listMsg = $("listMsg");
+
+      let currentUser = null;
+
+      function setMsg(el, text, kind) {
+        el.className = `form-msg ${kind || ""}`;
+        el.textContent = text || "";
+      }
+
+      function fmtDate(iso) {
+        if (!iso) return "—";
+        try {
+          return new Date(iso).toLocaleString("ru-RU", {
+            timeZone: "Asia/Dushanbe",
+          });
+        } catch {
+          return iso;
+        }
+      }
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c]);
+      }
+
+      async function init() {
+        try {
+          const res = await fetch("/api/me", { credentials: "same-origin" });
+          const data = await res.json();
+          if (!data.authenticated) {
+            window.location.href = "/";
+            return;
+          }
+          if (data.role !== "admin") {
+            loadingView.classList.add("hidden");
+            deniedView.classList.remove("hidden");
+            topbar.classList.remove("hidden");
+            return;
+          }
+          currentUser = data.login;
+          welcomeSub.textContent = `вы вошли как ${data.login}`;
+          loadingView.classList.add("hidden");
+          adminView.classList.remove("hidden");
+          topbar.classList.remove("hidden");
+          await loadUsers();
+        } catch {
+          loadingView.textContent = "ошибка загрузки";
+        }
+      }
+
+      async function loadUsers() {
+        setMsg(listMsg, "", "");
+        try {
+          const res = await fetch("/api/users", {
+            credentials: "same-origin",
+          });
+          if (res.status === 401) {
+            window.location.href = "/";
+            return;
+          }
+          if (res.status === 403) {
+            deniedView.classList.remove("hidden");
+            adminView.classList.add("hidden");
+            return;
+          }
+          const data = await res.json();
+          renderUsers(data.users || []);
+        } catch {
+          setMsg(listMsg, "ошибка сети", "error");
+        }
+      }
+
+      function renderUsers(users) {
+        if (!users.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="4" class="empty">пользователей нет</td></tr>';
+          return;
+        }
+        tbody.innerHTML = users
+          .map((u) => {
+            const isMe = u.login === currentUser;
+            return `
+              <tr data-login="${escapeHtml(u.login)}">
+                <td>
+                  ${escapeHtml(u.login)}
+                  ${isMe ? '<span class="me-tag">(вы)</span>' : ""}
+                </td>
+                <td>
+                  <span class="role-badge ${u.role}">${u.role}</span>
+                </td>
+                <td>${fmtDate(u.createdAt)}</td>
+                <td>
+                  <div class="actions">
+                    <button class="btn btn-small" data-act="password" data-login="${escapeHtml(u.login)}">Пароль</button>
+                    <button class="btn btn-small" data-act="role" data-login="${escapeHtml(u.login)}" data-role="${u.role}">${u.role === "admin" ? "→ user" : "→ admin"}</button>
+                    ${
+                      isMe
+                        ? ""
+                        : `<button class="btn btn-small btn-danger" data-act="delete" data-login="${escapeHtml(u.login)}">Удалить</button>`
+                    }
+                  </div>
+                </td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      tbody.addEventListener("click", async (e) => {
+        const btn = e.target.closest("button[data-act]");
+        if (!btn) return;
+        const act = btn.dataset.act;
+        const login = btn.dataset.login;
+
+        if (act === "password") {
+          const newP = prompt(`Новый пароль для ${login} (минимум 4 символа):`);
+          if (newP === null) return;
+          if (newP.length < 4) {
+            alert("Пароль минимум 4 символа");
+            return;
+          }
+          await patchUser(login, { password: newP });
+        } else if (act === "role") {
+          const cur = btn.dataset.role;
+          const next = cur === "admin" ? "user" : "admin";
+          if (
+            !confirm(`Изменить роль ${login}: ${cur} → ${next}?`)
+          )
+            return;
+          await patchUser(login, { role: next });
+        } else if (act === "delete") {
+          if (!confirm(`Удалить пользователя ${login}? Это необратимо.`))
+            return;
+          await deleteUser(login);
+        }
+      });
+
+      async function patchUser(login, body) {
+        setMsg(listMsg, "сохранение...", "");
+        try {
+          const res = await fetch(
+            `/api/users?login=${encodeURIComponent(login)}`,
+            {
+              method: "PATCH",
+              credentials: "same-origin",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify(body),
+            },
+          );
+          const data = await res.json();
+          if (!res.ok) {
+            setMsg(listMsg, data.error || "ошибка", "error");
+            return;
+          }
+          setMsg(listMsg, "сохранено", "success");
+          await loadUsers();
+        } catch {
+          setMsg(listMsg, "ошибка сети", "error");
+        }
+      }
+
+      async function deleteUser(login) {
+        setMsg(listMsg, "удаление...", "");
+        try {
+          const res = await fetch(
+            `/api/users?login=${encodeURIComponent(login)}`,
+            {
+              method: "DELETE",
+              credentials: "same-origin",
+            },
+          );
+          const data = await res.json();
+          if (!res.ok) {
+            setMsg(listMsg, data.error || "ошибка", "error");
+            return;
+          }
+          setMsg(listMsg, "удалено", "success");
+          await loadUsers();
+        } catch {
+          setMsg(listMsg, "ошибка сети", "error");
+        }
+      }
+
+      createBtn.addEventListener("click", async () => {
+        const login = newLogin.value.trim();
+        const password = newPass.value;
+        const role = newRole.value;
+        setMsg(createMsg, "", "");
+
+        if (!login || !password) {
+          setMsg(createMsg, "введите логин и пароль", "error");
+          return;
+        }
+
+        createBtn.disabled = true;
+        try {
+          const res = await fetch("/api/users", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ login, password, role }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            setMsg(createMsg, data.error || "ошибка", "error");
+            return;
+          }
+          setMsg(createMsg, `создан: ${data.login} (${data.role})`, "success");
+          newLogin.value = "";
+          newPass.value = "";
+          newRole.value = "user";
+          await loadUsers();
+        } catch {
+          setMsg(createMsg, "ошибка сети", "error");
+        } finally {
+          createBtn.disabled = false;
+        }
+      });
+
+      $("logoutBtn").addEventListener("click", async () => {
+        try {
+          await fetch("/api/logout", {
+            method: "POST",
+            credentials: "same-origin",
+          });
+        } catch {
+          /* ignore */
+        }
+        window.location.href = "/";
+      });
+
+      init();
+    </script>
+  </body>
+</html>
