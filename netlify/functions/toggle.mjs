@@ -84,14 +84,14 @@ export default async (req) => {
     lastChangedAt: new Date().toISOString(),
   };
 
+  await store.setJSON("current", next);
+
   let telegram = { sent: 0, failed: 0, total: 0 };
   try {
     telegram = await broadcast(status, auth.session.login);
   } catch {
-    /* swallow — state still saves */
+    /* swallow — state already saved */
   }
-
-  await store.setJSON("current", next);
 
   const telegramOk = telegram.total === 0 || telegram.sent > 0;
 

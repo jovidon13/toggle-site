@@ -9,7 +9,7 @@ export function usersStore() {
   return getStore("users");
 }
 export function stateStore() {
-  return getStore("state");
+  return getStore({ name: "state", consistency: "strong" });
 }
 export function sessionsStore() {
   return getStore("sessions");
